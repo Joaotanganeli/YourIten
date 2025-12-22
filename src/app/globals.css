@@ -3,18 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 250, 250;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-dark: #0f172a;
+  --background-darker: #020617;
+  --accent-green: #00ff88;
+  --accent-green-dim: #22c55e;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      135deg,
+      var(--background-darker) 0%,
+      var(--background-dark) 50%,
+      #0a1628 100%
+    );
   min-height: 100vh;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.glow-green-sm {
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+/* Text glow */
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }

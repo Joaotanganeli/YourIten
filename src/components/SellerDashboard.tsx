@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Product, Order } from '@/types'
 import { Plus, Package, ShoppingCart, DollarSign, Edit, Trash2, X } from 'lucide-react'
+import { apiClient } from '@/lib/api-client'
 
 export default function SellerDashboard() {
   const { user } = useAuth()
@@ -25,58 +26,47 @@ export default function SellerDashboard() {
     loadData()
   }, [user])
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!user) return
     
-    const allProducts = JSON.parse(localStorage.getItem('products') || '[]')
-    const myProducts = allProducts.filter((p: Product) => p.sellerId === user.id)
-    setProducts(myProducts)
-
-    const allOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-    const myOrders = allOrders.filter((o: Order) => o.sellerId === user.id)
-    setOrders(myOrders)
+    try {
+      const [productsData, ordersData] = await Promise.all([
+        apiClient.products.list(),
+        apiClient.orders.list('seller')
+      ])
+      setProducts(productsData.filter((p: Product) => p.sellerId === user.id))
+      setOrders(ordersData)
+    } catch (error) {
+      console.error('Failed to load data:', error)
+    }
   }
 
-  const handleSubmitProduct = (e: React.FormEvent) => {
+  const handleSubmitProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
 
-    const allProducts = JSON.parse(localStorage.getItem('products') || '[]')
-
-    if (editingProduct) {
-      const updatedProducts = allProducts.map((p: Product) =>
-        p.id === editingProduct.id
-          ? {
-              ...p,
-              title: productForm.title,
-              description: productForm.description,
-              price: parseFloat(productForm.price),
-              category: productForm.category,
-              stock: parseInt(productForm.stock),
-              imageUrl: productForm.imageUrl || `https://picsum.photos/seed/${p.id}/400/300`
-            }
-          : p
-      )
-      localStorage.setItem('products', JSON.stringify(updatedProducts))
-    } else {
-      const newProduct: Product = {
-        id: crypto.randomUUID(),
-        sellerId: user.id,
-        sellerName: user.name,
+    try {
+      const productData = {
         title: productForm.title,
         description: productForm.description,
         price: parseFloat(productForm.price),
         category: productForm.category,
         stock: parseInt(productForm.stock),
-        imageUrl: productForm.imageUrl || `https://picsum.photos/seed/${Date.now()}/400/300`,
-        createdAt: new Date().toISOString()
+        imageUrl: productForm.imageUrl || `https://picsum.photos/seed/${Date.now()}/400/300`
       }
-      allProducts.push(newProduct)
-      localStorage.setItem('products', JSON.stringify(allProducts))
-    }
 
-    resetForm()
-    loadData()
+      if (editingProduct) {
+        await apiClient.products.update(editingProduct.id, productData)
+      } else {
+        await apiClient.products.create(productData)
+      }
+
+      resetForm()
+      await loadData()
+    } catch (error) {
+      console.error('Failed to save product:', error)
+      alert('Failed to save product. Please try again.')
+    }
   }
 
   const resetForm = () => {
@@ -105,22 +95,26 @@ export default function SellerDashboard() {
     setShowProductModal(true)
   }
 
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return
     
-    const allProducts = JSON.parse(localStorage.getItem('products') || '[]')
-    const updatedProducts = allProducts.filter((p: Product) => p.id !== productId)
-    localStorage.setItem('products', JSON.stringify(updatedProducts))
-    loadData()
+    try {
+      await apiClient.products.delete(productId)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to delete product:', error)
+      alert('Failed to delete product. Please try again.')
+    }
   }
 
-  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
-    const allOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-    const updatedOrders = allOrders.map((o: Order) =>
-      o.id === orderId ? { ...o, status } : o
-    )
-    localStorage.setItem('orders', JSON.stringify(updatedOrders))
-    loadData()
+  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      await apiClient.orders.updateStatus(orderId, status)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to update order status:', error)
+      alert('Failed to update order status. Please try again.')
+    }
   }
 
   const totalRevenue = orders
@@ -131,48 +125,48 @@ export default function SellerDashboard() {
     <div className="space-y-8">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Package className="h-6 w-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
+              <Package className="h-6 w-6 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Products</p>
-              <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+              <p className="text-sm text-dark-400">Total Products</p>
+              <p className="text-2xl font-bold text-white">{products.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6 text-green-600" />
+            <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
+              <ShoppingCart className="h-6 w-6 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+              <p className="text-sm text-dark-400">Total Orders</p>
+              <p className="text-2xl font-bold text-white">{orders.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-purple-600" />
+            <div className="w-12 h-12 bg-primary-500/10 rounded-full flex items-center justify-center">
+              <DollarSign className="h-6 w-6 text-primary-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+              <p className="text-sm text-dark-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-primary-400">${totalRevenue.toFixed(2)}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Products Section */}
-      <div className="bg-white rounded-xl shadow-md">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">My Products</h2>
+      <div className="bg-dark-800 rounded-xl border border-dark-700">
+        <div className="p-6 border-b border-dark-700 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-white">My Products</h2>
           <button
             onClick={() => setShowProductModal(true)}
-            className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            className="flex items-center space-x-2 bg-primary-500 text-dark-900 px-4 py-2 rounded-lg hover:bg-primary-400 transition-colors font-bold"
           >
             <Plus className="h-5 w-5" />
             <span>Add Product</span>
@@ -180,34 +174,34 @@ export default function SellerDashboard() {
         </div>
         <div className="p-6">
           {products.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No products yet. Add your first product!</p>
+            <p className="text-dark-400 text-center py-8">No products yet. Add your first product!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map(product => (
-                <div key={product.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                <div key={product.id} className="border border-dark-700 rounded-lg overflow-hidden bg-dark-800/50">
                   <img
                     src={product.imageUrl}
                     alt={product.title}
                     className="w-full h-48 object-cover"
                   />
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-900">{product.title}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{product.category}</p>
+                    <h3 className="font-semibold text-white">{product.title}</h3>
+                    <p className="text-sm text-dark-400 mt-1">{product.category}</p>
                     <div className="flex justify-between items-center mt-3">
-                      <span className="text-lg font-bold text-primary-600">${product.price.toFixed(2)}</span>
-                      <span className="text-sm text-gray-500">Stock: {product.stock}</span>
+                      <span className="text-lg font-bold text-primary-400">${product.price.toFixed(2)}</span>
+                      <span className="text-sm text-dark-400">Stock: {product.stock}</span>
                     </div>
                     <div className="flex space-x-2 mt-4">
                       <button
                         onClick={() => handleEditProduct(product)}
-                        className="flex-1 flex items-center justify-center space-x-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="flex-1 flex items-center justify-center space-x-1 bg-dark-700 text-dark-300 px-3 py-2 rounded-lg hover:bg-dark-600 transition-colors"
                       >
                         <Edit className="h-4 w-4" />
                         <span>Edit</span>
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="flex items-center justify-center bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                        className="flex items-center justify-center bg-red-500/20 text-red-400 px-3 py-2 rounded-lg hover:bg-red-500/30 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -221,34 +215,34 @@ export default function SellerDashboard() {
       </div>
 
       {/* Orders Section */}
-      <div className="bg-white rounded-xl shadow-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Orders Received</h2>
+      <div className="bg-dark-800 rounded-xl border border-dark-700">
+        <div className="p-6 border-b border-dark-700">
+          <h2 className="text-xl font-bold text-white">Orders Received</h2>
         </div>
         <div className="p-6">
           {orders.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No orders yet.</p>
+            <p className="text-dark-400 text-center py-8">No orders yet.</p>
           ) : (
             <div className="space-y-4">
               {orders.map(order => (
-                <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={order.id} className="border border-dark-700 rounded-lg p-4 bg-dark-800/50">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{order.productTitle}</h3>
-                      <p className="text-sm text-gray-500">Buyer: {order.buyerName}</p>
-                      <p className="text-sm text-gray-500">Quantity: {order.quantity}</p>
-                      <p className="text-lg font-bold text-primary-600 mt-2">${order.totalPrice.toFixed(2)}</p>
+                      <h3 className="font-semibold text-white">{order.productTitle}</h3>
+                      <p className="text-sm text-dark-400">Buyer: {order.buyerName}</p>
+                      <p className="text-sm text-dark-400">Quantity: {order.quantity}</p>
+                      <p className="text-lg font-bold text-primary-400 mt-2">${order.totalPrice.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
                       <select
                         value={order.status}
                         onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as Order['status'])}
-                        className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${
-                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                          order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
-                          order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                          'bg-red-100 text-red-700'
+                        className={`px-3 py-1 rounded-full text-sm font-medium border cursor-pointer ${
+                          order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                          order.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          order.status === 'shipped' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                          order.status === 'delivered' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                          'bg-red-500/20 text-red-400 border-red-500/30'
                         }`}
                       >
                         <option value="pending">Pending</option>
@@ -257,7 +251,7 @@ export default function SellerDashboard() {
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
                       </select>
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-dark-500 mt-2">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -271,40 +265,40 @@ export default function SellerDashboard() {
 
       {/* Product Modal */}
       {showProductModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-dark-700">
+            <div className="p-6 border-b border-dark-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
-              <button onClick={resetForm} className="text-gray-500 hover:text-gray-700">
+              <button onClick={resetForm} className="text-dark-400 hover:text-white">
                 <X className="h-6 w-6" />
               </button>
             </div>
             <form onSubmit={handleSubmitProduct} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-dark-300 mb-1">Title</label>
                 <input
                   type="text"
                   value={productForm.title}
                   onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-dark-300 mb-1">Description</label>
                 <textarea
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   required
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                  <label className="block text-sm font-medium text-dark-300 mb-1">Price ($)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -312,28 +306,28 @@ export default function SellerDashboard() {
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <label className="block text-sm font-medium text-dark-300 mb-1">Stock</label>
                   <input
                     type="number"
                     min="0"
                     value={productForm.stock}
                     onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-dark-300 mb-1">Category</label>
                 <select
                   value={productForm.category}
                   onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white"
                 >
                   <option value="">Select a category</option>
                   <option value="Electronics">Electronics</option>
@@ -345,18 +339,18 @@ export default function SellerDashboard() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
+                <label className="block text-sm font-medium text-dark-300 mb-1">Image URL (optional)</label>
                 <input
                   type="url"
                   value={productForm.imageUrl}
                   onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-white placeholder-dark-500"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                className="w-full bg-primary-500 text-dark-900 py-3 rounded-lg font-bold hover:bg-primary-400 transition-colors"
               >
                 {editingProduct ? 'Update Product' : 'Add Product'}
               </button>

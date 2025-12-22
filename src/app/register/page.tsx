@@ -66,16 +66,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-dark-800 rounded-2xl border border-dark-700 p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-600 mt-2">Join YourIten marketplace</p>
+            <h1 className="text-3xl font-bold text-white">Create Account</h1>
+            <p className="text-dark-400 mt-2">Join YourIten marketplace</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center space-x-2 text-red-400">
               <AlertCircle className="h-5 w-5" />
               <span>{error}</span>
             </div>
@@ -83,7 +83,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-dark-300 mb-3">
                 I want to register as
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -92,46 +92,46 @@ export default function RegisterPage() {
                   onClick={() => setRole('buyer')}
                   className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center space-y-1 ${
                     role === 'buyer'
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                      : 'border-dark-600 hover:border-dark-500 text-dark-300'
                   }`}
                 >
-                  <ShoppingBag className={`h-6 w-6 ${role === 'buyer' ? 'text-primary-600' : 'text-gray-400'}`} />
+                  <ShoppingBag className={`h-6 w-6 ${role === 'buyer' ? 'text-primary-400' : 'text-dark-500'}`} />
                   <span className="font-medium text-sm">Buyer</span>
-                  <span className="text-xs text-gray-500">Purchase</span>
+                  <span className="text-xs text-dark-500">Purchase</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('seller')}
                   className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center space-y-1 ${
                     role === 'seller'
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                      : 'border-dark-600 hover:border-dark-500 text-dark-300'
                   }`}
                 >
-                  <Store className={`h-6 w-6 ${role === 'seller' ? 'text-green-600' : 'text-gray-400'}`} />
+                  <Store className={`h-6 w-6 ${role === 'seller' ? 'text-primary-400' : 'text-dark-500'}`} />
                   <span className="font-medium text-sm">Seller</span>
-                  <span className="text-xs text-gray-500">Sell items</span>
+                  <span className="text-xs text-dark-500">Sell items</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('booster')}
                   className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center space-y-1 ${
                     role === 'booster'
-                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                      : 'border-dark-600 hover:border-dark-500 text-dark-300'
                   }`}
                 >
-                  <Gamepad2 className={`h-6 w-6 ${role === 'booster' ? 'text-purple-600' : 'text-gray-400'}`} />
+                  <Gamepad2 className={`h-6 w-6 ${role === 'booster' ? 'text-purple-400' : 'text-dark-500'}`} />
                   <span className="font-medium text-sm">Booster</span>
-                  <span className="text-xs text-gray-500">Boost ranks</span>
+                  <span className="text-xs text-dark-500">Boost ranks</span>
                 </button>
               </div>
             </div>
 
             {role === 'booster' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-dark-300 mb-3">
                   Select games you can boost
                 </label>
                 <div className="space-y-2">
@@ -142,16 +142,16 @@ export default function RegisterPage() {
                       onClick={() => toggleGame(game.id)}
                       className={`w-full p-3 rounded-lg border-2 transition-all flex items-center space-x-3 ${
                         selectedGames.includes(game.id)
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                          : 'border-dark-600 hover:border-dark-500 text-dark-300'
                       }`}
                     >
-                      <div className={selectedGames.includes(game.id) ? 'text-purple-600' : 'text-gray-400'}>
+                      <div className={selectedGames.includes(game.id) ? 'text-purple-400' : 'text-dark-500'}>
                         {game.icon}
                       </div>
                       <span className="font-medium">{game.name}</span>
                       {selectedGames.includes(game.id) && (
-                        <span className="ml-auto text-purple-600">✓</span>
+                        <span className="ml-auto text-purple-400">✓</span>
                       )}
                     </button>
                   ))}
@@ -160,72 +160,72 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-dark-300 mb-2">
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-dark-500" />
                 <input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-white placeholder-dark-500"
                   placeholder="John Doe"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-dark-300 mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-dark-500" />
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-white placeholder-dark-500"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-dark-300 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-dark-500" />
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-white placeholder-dark-500"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-dark-300 mb-2">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-dark-500" />
                 <input
                   id="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-dark-700 border border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all text-white placeholder-dark-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -234,7 +234,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary-500 text-dark-900 py-3 rounded-lg font-bold hover:bg-primary-400 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span>Creating account...</span>
@@ -248,9 +248,9 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-dark-400">
               Already have an account?{' '}
-              <Link href="/login" className="text-primary-600 font-semibold hover:underline">
+              <Link href="/login" className="text-primary-400 font-semibold hover:underline">
                 Sign in here
               </Link>
             </p>

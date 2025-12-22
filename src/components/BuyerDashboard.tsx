@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Order, BoostOrder } from '@/types'
 import { ShoppingBag, Package, Clock, CheckCircle, XCircle, Truck, Gamepad2, Play, Trophy } from 'lucide-react'
 import Link from 'next/link'
+import { apiClient } from '@/lib/api-client'
 
 export default function BuyerDashboard() {
   const { user } = useAuth()
@@ -14,19 +15,21 @@ export default function BuyerDashboard() {
 
   useEffect(() => {
     if (!user) return
-    
-    const allOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-    const myOrders = allOrders.filter((o: Order) => o.buyerId === user.id)
-    setOrders(myOrders.sort((a: Order, b: Order) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ))
-
-    const allBoostOrders = JSON.parse(localStorage.getItem('boostOrders') || '[]')
-    const myBoostOrders = allBoostOrders.filter((o: BoostOrder) => o.buyerId === user.id)
-    setBoostOrders(myBoostOrders.sort((a: BoostOrder, b: BoostOrder) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ))
+    loadOrders()
   }, [user])
+
+  const loadOrders = async () => {
+    try {
+      const [ordersData, boostOrdersData] = await Promise.all([
+        apiClient.orders.list('buyer'),
+        apiClient.boostOrders.list({ role: 'buyer' })
+      ])
+      setOrders(ordersData)
+      setBoostOrders(boostOrdersData)
+    } catch (error) {
+      console.error('Failed to load orders:', error)
+    }
+  }
 
   const getStatusIcon = (status: Order['status']) => {
     switch (status) {
@@ -50,15 +53,15 @@ export default function BuyerDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-700'
+      case 'pending': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
       case 'confirmed': 
-      case 'claimed': return 'bg-blue-100 text-blue-700'
+      case 'claimed': return 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
       case 'shipped':
-      case 'in_progress': return 'bg-purple-100 text-purple-700'
+      case 'in_progress': return 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
       case 'delivered':
-      case 'completed': return 'bg-green-100 text-green-700'
-      case 'cancelled': return 'bg-red-100 text-red-700'
-      default: return 'bg-gray-100 text-gray-700'
+      case 'completed': return 'bg-green-500/20 text-green-400 border border-green-500/30'
+      case 'cancelled': return 'bg-red-500/20 text-red-400 border border-red-500/30'
+      default: return 'bg-dark-700 text-dark-300'
     }
   }
 
@@ -73,47 +76,47 @@ export default function BuyerDashboard() {
     <div className="space-y-8">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <Clock className="h-6 w-6 text-yellow-600" />
+            <div className="w-12 h-12 bg-yellow-500/10 rounded-full flex items-center justify-center">
+              <Clock className="h-6 w-6 text-yellow-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pending Orders</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingOrders}</p>
+              <p className="text-sm text-dark-400">Pending Orders</p>
+              <p className="text-2xl font-bold text-white">{pendingOrders}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <Gamepad2 className="h-6 w-6 text-purple-600" />
+            <div className="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+              <Gamepad2 className="h-6 w-6 text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Active Boosts</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingBoosts}</p>
+              <p className="text-sm text-dark-400">Active Boosts</p>
+              <p className="text-2xl font-bold text-white">{pendingBoosts}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">{completedOrders + completedBoosts}</p>
+              <p className="text-sm text-dark-400">Completed</p>
+              <p className="text-2xl font-bold text-white">{completedOrders + completedBoosts}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md">
+        <div className="bg-dark-800 rounded-xl p-6 border border-dark-700">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-              <ShoppingBag className="h-6 w-6 text-primary-600" />
+            <div className="w-12 h-12 bg-primary-500/10 rounded-full flex items-center justify-center">
+              <ShoppingBag className="h-6 w-6 text-primary-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Spent</p>
-              <p className="text-2xl font-bold text-gray-900">${totalSpent.toFixed(2)}</p>
+              <p className="text-sm text-dark-400">Total Spent</p>
+              <p className="text-2xl font-bold text-primary-400">${totalSpent.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -121,23 +124,23 @@ export default function BuyerDashboard() {
 
       {/* CTAs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-r from-primary-500 to-primary-700 rounded-xl p-6 text-white">
-          <h2 className="text-xl font-bold mb-2">Shop Products</h2>
-          <p className="text-primary-100 mb-4 text-sm">Browse our marketplace for amazing products.</p>
+        <div className="bg-dark-800 rounded-xl p-6 border border-primary-500/30 glow-green-sm">
+          <h2 className="text-xl font-bold text-white mb-2">Shop Products</h2>
+          <p className="text-dark-400 mb-4 text-sm">Browse our marketplace for amazing products.</p>
           <Link
             href="/products"
-            className="inline-flex items-center space-x-2 bg-white text-primary-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
+            className="inline-flex items-center space-x-2 bg-primary-500 text-dark-900 px-4 py-2 rounded-lg font-bold hover:bg-primary-400 transition-colors text-sm"
           >
             <ShoppingBag className="h-4 w-4" />
             <span>Browse Products</span>
           </Link>
         </div>
-        <div className="bg-gradient-to-r from-purple-500 to-purple-700 rounded-xl p-6 text-white">
-          <h2 className="text-xl font-bold mb-2">Gaming Services</h2>
-          <p className="text-purple-100 mb-4 text-sm">Get rank boosts, accounts, and more.</p>
+        <div className="bg-dark-800 rounded-xl p-6 border border-purple-500/30">
+          <h2 className="text-xl font-bold text-white mb-2">Gaming Services</h2>
+          <p className="text-dark-400 mb-4 text-sm">Get rank boosts, accounts, and more.</p>
           <Link
             href="/services"
-            className="inline-flex items-center space-x-2 bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm"
+            className="inline-flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-400 transition-colors text-sm"
           >
             <Gamepad2 className="h-4 w-4" />
             <span>Browse Services</span>
@@ -146,15 +149,15 @@ export default function BuyerDashboard() {
       </div>
 
       {/* Orders Section with Tabs */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="border-b border-gray-200">
+      <div className="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+        <div className="border-b border-dark-700">
           <div className="flex">
             <button
               onClick={() => setActiveTab('products')}
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                 activeTab === 'products'
-                  ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-primary-400 border-b-2 border-primary-500 bg-primary-500/10'
+                  : 'text-dark-400 hover:text-dark-300'
               }`}
             >
               Product Orders ({orders.length})
@@ -163,8 +166,8 @@ export default function BuyerDashboard() {
               onClick={() => setActiveTab('boosts')}
               className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                 activeTab === 'boosts'
-                  ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-purple-400 border-b-2 border-purple-500 bg-purple-500/10'
+                  : 'text-dark-400 hover:text-dark-300'
               }`}
             >
               Boost Orders ({boostOrders.length})
@@ -176,31 +179,31 @@ export default function BuyerDashboard() {
           {activeTab === 'products' ? (
             orders.length === 0 ? (
               <div className="text-center py-12">
-                <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">You haven&apos;t placed any product orders yet.</p>
-                <Link href="/products" className="text-primary-600 font-semibold hover:underline">
+                <ShoppingBag className="h-16 w-16 text-dark-600 mx-auto mb-4" />
+                <p className="text-dark-400 mb-4">You haven&apos;t placed any product orders yet.</p>
+                <Link href="/products" className="text-primary-400 font-semibold hover:underline">
                   Start shopping →
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
                 {orders.map(order => (
-                  <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={order.id} className="border border-dark-700 rounded-lg p-4 hover:border-dark-600 transition-colors bg-dark-800/50">
                     <div className="flex justify-between items-start">
                       <div className="flex space-x-4">
                         <div className="flex-shrink-0">{getStatusIcon(order.status)}</div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{order.productTitle}</h3>
-                          <p className="text-sm text-gray-500">Seller: {order.sellerName}</p>
-                          <p className="text-sm text-gray-500">Quantity: {order.quantity}</p>
-                          <p className="text-lg font-bold text-primary-600 mt-2">${order.totalPrice.toFixed(2)}</p>
+                          <h3 className="font-semibold text-white">{order.productTitle}</h3>
+                          <p className="text-sm text-dark-400">Seller: {order.sellerName}</p>
+                          <p className="text-sm text-dark-400">Quantity: {order.quantity}</p>
+                          <p className="text-lg font-bold text-primary-400 mt-2">${order.totalPrice.toFixed(2)}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
-                        <p className="text-xs text-gray-400 mt-2">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        <p className="text-xs text-dark-500 mt-2">{new Date(order.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
@@ -210,33 +213,33 @@ export default function BuyerDashboard() {
           ) : (
             boostOrders.length === 0 ? (
               <div className="text-center py-12">
-                <Gamepad2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">You haven&apos;t ordered any boosts yet.</p>
-                <Link href="/services" className="text-purple-600 font-semibold hover:underline">
+                <Gamepad2 className="h-16 w-16 text-dark-600 mx-auto mb-4" />
+                <p className="text-dark-400 mb-4">You haven&apos;t ordered any boosts yet.</p>
+                <Link href="/services" className="text-purple-400 font-semibold hover:underline">
                   Browse services →
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
                 {boostOrders.map(order => (
-                  <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={order.id} className="border border-dark-700 rounded-lg p-4 hover:border-dark-600 transition-colors bg-dark-800/50">
                     <div className="flex justify-between items-start">
                       <div className="flex space-x-4">
                         <div className="flex-shrink-0">{getBoostStatusIcon(order.status)}</div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{order.service.title}</h3>
-                          <p className="text-sm text-gray-500 capitalize">{order.service.game.replace('_', ' ')}</p>
+                          <h3 className="font-semibold text-white">{order.service.title}</h3>
+                          <p className="text-sm text-dark-400 capitalize">{order.service.game.replace('_', ' ')}</p>
                           {order.boosterName && (
-                            <p className="text-sm text-gray-500">Booster: {order.boosterName}</p>
+                            <p className="text-sm text-dark-400">Booster: {order.boosterName}</p>
                           )}
-                          <p className="text-lg font-bold text-purple-600 mt-2">${order.totalPrice.toFixed(2)}</p>
+                          <p className="text-lg font-bold text-purple-400 mt-2">${order.totalPrice.toFixed(2)}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                           {order.status.replace('_', ' ').charAt(0).toUpperCase() + order.status.replace('_', ' ').slice(1)}
                         </span>
-                        <p className="text-xs text-gray-400 mt-2">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        <p className="text-xs text-dark-500 mt-2">{new Date(order.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
