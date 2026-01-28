@@ -28,6 +28,8 @@ export interface BoostConfig {
   currentMastery?: number
   desiredMastery?: number
   champion?: string
+  server?: string
+  queueType?: string
 }
 
 export interface User {
